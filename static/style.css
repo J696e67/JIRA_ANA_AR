@@ -1,5 +1,82 @@
+/* ── Layout ─────────────────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────────── */
+.sidebar {
+  width: 220px;
+  background: #1e293b;
+  color: #cbd5e1;
+  padding: 1.5rem 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-header {
+  padding: 0 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-header h1 {
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+}
+.status-dot.online { background: #10b981; }
+.status-dot.offline { background: #ef4444; }
+.nav-links {
+  list-style: none;
+  padding: 1rem 0;
+}
+.nav-link {
+  display: block;
+  padding: 0.6rem 1.25rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-link.active { background: #3b82f6; color: #fff; font-weight: 600; }
+
+/* ── Content area ──────────────────────────────────────────────────── */
+.content {
+  flex: 1;
+  padding: 2rem;
+  background: #f5f6fa;
+  overflow-y: auto;
+}
+
+/* ── Pages ─────────────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Empty state ───────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+/* ── Drop zone ─────────────────────────────────────────────────────── */
 .drop-zone { border: 2px dashed #cbd5e0; transition: all 0.2s; }
 .drop-zone.drag-over { border-color: #3b82f6; background-color: #eff6ff; }
+
+/* ── Toast ─────────────────────────────────────────────────────────── */
 .toast {
   animation: slideUp 0.3s ease-out, fadeOut 0.5s ease-in 3s forwards;
 }
@@ -11,5 +88,53 @@
   from { opacity: 1; }
   to   { opacity: 0; }
 }
+
+/* ── Table sorting ─────────────────────────────────────────────────── */
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { background-color: #e5e7eb; }
+
+/* ── Triage output ─────────────────────────────────────────────────── */
+.triage-output strong { font-weight: 600; }
+.triage-output pre { font-family: ui-monospace, monospace; }
+
+/* ── Triage group accordion ───────────────────────────────────────── */
+.triage-group summary { list-style: none; }
+.triage-group summary::-webkit-details-marker { display: none; }
+.triage-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid #6b7280;
+  transition: transform 0.15s ease;
+}
+.triage-group[open] > summary .triage-arrow {
+  transform: rotate(90deg);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    padding: 0.75rem 0;
+  }
+  .sidebar-header {
+    padding: 0 1rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sidebar-header h1 { margin-bottom: 0; }
+  .nav-links {
+    display: flex;
+    padding: 0.5rem 0.75rem 0;
+    gap: 0.25rem;
+  }
+  .nav-link {
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+  }
+  .content { padding: 1rem; }
+}

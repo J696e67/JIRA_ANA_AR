@@ -9,7 +9,7 @@ import tempfile
 from flask import Flask
 
 from config import MAX_UPLOAD_SIZE_MB
-from routes import invoice_bp
+from routes import invoice_bp, triage_bp
 
 
 def create_app():
@@ -17,6 +17,7 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
     app.register_blueprint(invoice_bp)
+    app.register_blueprint(triage_bp)
 
     return app
 

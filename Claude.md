@@ -11,6 +11,7 @@ Internal Flask web application for the Medical System Data Warehouse (MSDW) team
 - **PDF**: reportlab (or fpdf2, check requirements.txt)
 - **Data**: pandas, numpy
 - **Email**: smtplib (standard library)
+- **Triage/LLM**: requests (Ollama)
 - **No database** — all session data is in-memory
 
 ## Architecture
@@ -42,7 +43,9 @@ No circular imports. Routes never import from routes. Services never import from
 | `services/csv_service.py` | CSV reading, format detection, cleaning, column renaming | Flask, HTTP, file serving |
 | `services/invoice_service.py` | PDF generation from row data | Flask, email, CSV parsing |
 | `services/email_service.py` | SMTP connection, build & send email with attachment | Flask, CSV, PDF generation |
-| `utils/session_store.py` | In-memory storage for session data, PDF paths, send status | Flask request handling, business logic |
+| `services/triage_service.py` | Ticket classification, LLM calls (Ollama/Claude), priority categorisation | Flask, CSV preprocessing, email |
+| `routes/triage_routes.py` | Triage HTTP endpoints, background thread management | pandas, LLM calls, business logic |
+| `utils/session_store.py` | In-memory storage for session data, PDF paths, send status, triage state | Flask request handling, business logic |
 | `templates/index.html` | UI layout, references static assets | Inline `<script>` or `<style>` blocks |
 | `static/app.js` | All frontend logic: upload, API calls, DOM updates | — |
 | `static/style.css` | Custom styles, Tailwind overrides | — |
@@ -93,12 +96,14 @@ JIRA_ANA_AR/
 ├── config.py
 ├── routes/
 │   ├── __init__.py
-│   └── invoice_routes.py
+│   ├── invoice_routes.py
+│   └── triage_routes.py
 ├── services/
 │   ├── __init__.py
 │   ├── csv_service.py
 │   ├── invoice_service.py
-│   └── email_service.py
+│   ├── email_service.py
+│   └── triage_service.py
 ├── models/
 │   └── __init__.py              # empty, reserved for future ORM
 ├── utils/
@@ -127,8 +132,11 @@ python app.py
 python scripts/generate_invoices.py input.csv -o output_dir/
 ```
 
+### Run triage (web)
+Upload a CSV, then click "Run Triage" in the UI. Requires Ollama running locally, or `CLAUDE_API_KEY` set with `LLM_PROVIDER=claude`.
+
 ### Add a new route
-1. Add endpoint in `routes/invoice_routes.py`
+1. Add endpoint in `routes/invoice_routes.py` or `routes/triage_routes.py`
 2. Create or call service function in `services/`
 3. Never put business logic in the route — delegate to service
 
