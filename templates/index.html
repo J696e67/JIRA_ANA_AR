@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Epic Research Reporting Invoice Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-blue-900 text-white px-6 py-4 shadow-md">
+    <h1 class="text-xl font-bold tracking-wide">Epic Research Reporting &mdash; Invoice Generator</h1>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- Upload Section -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">1. Upload CSV</h2>
+      <div id="drop-zone" class="drop-zone rounded-lg p-10 text-center cursor-pointer">
+        <div class="text-5xl mb-3 select-none">📄</div>
+        <p class="text-gray-600 text-sm">
+          Drag &amp; drop a CSV file here, or
+          <span class="text-blue-600 underline cursor-pointer" onclick="document.getElementById('file-input').click()">browse</span>
+        </p>
+        <p class="text-xs text-gray-400 mt-2">
+          Required columns: issue_key, pi_name, summary, quote, created, send_invoice, fund_number
+        </p>
+        <input type="file" id="file-input" accept=".csv" class="hidden">
+      </div>
+      <div id="upload-status" class="hidden mt-3 text-sm text-gray-500 bg-gray-50 rounded px-3 py-2"></div>
+    </div>
+
+    <!-- Email Config Panel -->
+    <div id="email-panel" class="bg-white rounded-xl shadow p-6 hidden">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">2. Email Configuration</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">From (Gmail address)</label>
+          <input type="email" id="from-addr" value="nicejingy@gmail.com"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Gmail App Password</label>
+          <input type="password" id="gmail-password" placeholder="App password (not your regular password)"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
+          <input type="email" id="to-addr" value="nicejingy@gmail.com"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">CC</label>
+          <input type="email" id="cc-addr" value="jing.yang@mssm.edu"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button id="send-all-btn" onclick="sendAll()"
+          class="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Send All Generated Invoices
+        </button>
+      </div>
+    </div>
+
+    <!-- Invoice Table -->
+    <div id="invoice-table-section" class="bg-white rounded-xl shadow hidden">
+      <div class="px-6 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 class="text-base font-semibold text-gray-700">3. Invoices</h2>
+        <div class="flex items-center gap-3">
+          <input type="text" id="search-input" placeholder="Filter by key, PI, or summary…"
+            class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            oninput="filterTable()">
+          <span id="row-count" class="text-xs text-gray-400 whitespace-nowrap"></span>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b text-gray-600">
+            <tr>
+              <th class="sortable px-4 py-3 text-left font-medium rounded-tl-xl" onclick="sortTable('issue_key')">
+                Issue Key <span class="sort-icon text-gray-400"></span>
+              </th>
+              <th class="sortable px-4 py-3 text-left font-medium" onclick="sortTable('pi_name')">
+                PI Name <span class="sort-icon text-gray-400"></span>
+              </th>
+              <th class="px-4 py-3 text-left font-medium">Summary</th>
+              <th class="sortable px-4 py-3 text-right font-medium" onclick="sortTable('hours')">
+                Hours <span class="sort-icon text-gray-400"></span>
+              </th>
+              <th class="sortable px-4 py-3 text-right font-medium" onclick="sortTable('amount')">
+                Amount <span class="sort-icon text-gray-400"></span>
+              </th>
+              <th class="px-4 py-3 text-left font-medium">Created</th>
+              <th class="px-4 py-3 text-center font-medium">PDF</th>
+              <th class="px-4 py-3 text-center font-medium">Email</th>
+              <th class="px-4 py-3 text-center font-medium rounded-tr-xl">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoice-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 space-y-2 z-50 pointer-events-none"></div>
+
+  <!-- Email Modal -->
+  <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
+      <div class="px-6 py-4 border-b flex items-center justify-between">
+        <h3 class="text-base font-semibold text-gray-800">Send Invoice Email</h3>
+        <button onclick="closeEmailModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Subject</label>
+          <input type="text" id="modal-subject"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Body</label>
+          <textarea id="modal-body" rows="11"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"></textarea>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t flex justify-end gap-3">
+        <button onclick="closeEmailModal()"
+          class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+        <button onclick="sendModalEmail()"
+          class="bg-blue-700 hover:bg-blue-800 text-white rounded-lg px-5 py-2 text-sm font-medium transition-colors">Send Email</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+.drop-zone { border: 2px dashed #cbd5e0; transition: all 0.2s; }
+.drop-zone.drag-over { border-color: #3b82f6; background-color: #eff6ff; }
+.toast {
+  animation: slideUp 0.3s ease-out, fadeOut 0.5s ease-in 3s forwards;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { background-color: #e5e7eb; }
